@@ -1,42 +1,61 @@
 --- Symbol List (sorted by symbol)
-0.DrawPaddle0            f08b              (R )
-0.DrawPaddle1            f0a2              (R )
+0.DrawBall               f0b5                  
+0.DrawPaddle0            f0c9              (R )
+0.DrawPaddle1            f0e0              (R )
 0.FREE_BYTES             0000                  
-0.GameLineLoop           f081              (R )
+0.GameLineLoop           f0b5              (R )
+0.ResetBallPos           f0a2              (R )
+0.SkipBallDraw           f0bd              (R )
+0.SkipReset              f0a6              (R )
+0.TestBall               f095                  
 1.CLEAR_STACK            f006              (R )
-2.Div15Loop              f13a              (R )
+2.Div15Loop              f1d2              (R )
+AjustYBall               f1aa              (R )
 AUDC0                    0015                  
 AUDC1                    0016                  
 AUDF0                    0017                  
 AUDF1                    0018                  
 AUDV0                    0019                  
 AUDV1                    001a                  
-CheckP0Down              f107              (R )
-CheckP0Up                f0f8                  
-CheckP1Down              f125              (R )
-CheckP1Up                f116              (R )
-COLOR_BG                 0000              (R )
-COLOR_PF                 0004                  
+BallDown                 f1bf              (R )
+BallUp                   f1c6              (R )
+BallXDirection           0085              (R )
+BallXPos                 0082              (R )
+BallYDirection           0084              (R )
+BallYPos                 0083              (R )
+CheckCollisionP0BL       f186              (R )
+CheckCollisionP1BL       f198              (R )
+CheckP0Down              f141              (R )
+CheckP0Up                f132                  
+CheckP1Down              f15f              (R )
+CheckP1Up                f150              (R )
+CollisionP0BL            f18f              (R )
+CollisionP1BL            f1a1              (R )
+COLOR_BG                 00a0              (R )
+COLOR_PF                 000a              (R )
 COLUBK                   0009              (R )
 COLUP0                   0006              (R )
 COLUP1                   0007              (R )
-COLUPF                   0008                  
+COLUPF                   0008              (R )
 CTRLPF                   000a                  
 CXBLPF                   0006                  
-CXCLR                    002c                  
+CXCLR                    002c              (R )
 CXM0FB                   0004                  
 CXM0P                    0000                  
 CXM1FB                   0005                  
 CXM1P                    0001                  
-CXP0FB                   0002                  
-CXP1FB                   0003                  
+CXP0FB                   0002              (R )
+CXP1FB                   0003              (R )
 CXPPMM                   0007                  
-ENABL                    001f                  
+ENABL                    001f              (R )
 ENAM0                    001d                  
 ENAM1                    001e                  
+EndCollision             f1ca              (R )
 GRP0                     001b              (R )
 GRP1                     001c              (R )
 HEIGHT_PF                0007                  
+hitBottom                f17b              (R )
+hitTop                   f182              (R )
 HMBL                     0024                  
 HMCLR                    002b                  
 HMM0                     0022                  
@@ -51,14 +70,15 @@ INPT3                    000b
 INPT4                    000c                  
 INPT5                    000d                  
 INTIM                    0284                  
-NoMoreInput              f134              (R )
+NoMoreInput              f16e              (R )
 NUSIZ0                   0004                  
 NUSIZ1                   0005                  
-PADDLE0_X_POS            0000              (R )
-Paddle0Color             f15d              (R )
-Paddle0Sprite            f14b              (R )
+PADDLE0_X_POS            0010              (R )
+Paddle0Color             f207              (R )
+Paddle0Sprite            f1e3              (R )
 Paddle0YPos              0080              (R )
-PADDLE1_X_POS            007d              (R )
+PADDLE1_X_POS            0078              (R )
+Paddle1Sprite            f1f5              (R )
 Paddle1YPos              0081              (R )
 PADDLE_HEIGHT            0012                  
 PF0                      000d                  
@@ -75,13 +95,14 @@ RESMP1                   0029
 RESP0                    0010              (R )
 RESP1                    0011                  
 RSYNC                    0003                  
-SetObjectXPos            f137              (R )
-StartFrame               f011              (R )
+SetObjectXPos            f1cf              (R )
+StartFrame               f01f              (R )
 SWACNT                   0281                  
 SWBCNT                   0283                  
 SWCHA                    0280              (R )
 SWCHB                    0282                  
 T1024T                   0297                  
+Temp                     0086              (R )
 TIA_BASE_ADDRESS         0000              (R )
 TIA_BASE_READ_ADDRESS    0000              (R )
 TIA_BASE_WRITE_ADDRESS   0000              (R )

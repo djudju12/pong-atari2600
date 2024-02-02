@@ -17,20 +17,26 @@
 Paddle0YPos      byte
 Paddle1YPos      byte
 
+BallXPos         byte
+BallYPos         byte
+BallYDirection   byte
+BallXDirection   byte
+
+Temp             byte
+
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Constants Segment                                                           ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
-COLOR_BG  = $00
-COLOR_PF  = $04
+COLOR_BG  = $A0
+COLOR_PF  = $0A
 HEIGHT_PF = $07
 
-PADDLE0_X_POS = $00
-PADDLE1_X_POS = #125
+PADDLE0_X_POS = $10
+PADDLE1_X_POS = #120
 
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Macros Segment                                                              ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
-
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Start of the program                                                        ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
@@ -43,9 +49,22 @@ Reset:
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Initialization of variables and TIA registers                               ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
-    LDA #70
+    LDA #55
     STA Paddle0YPos
     STA Paddle1YPos
+
+    LDA #60
+    STA BallYPos
+    STA BallXPos
+
+    LDA #$00
+    STA BallYDirection
+    LDA #$FF
+    STA BallXDirection
+
+    ; LDA #%00010000
+    ; STA CTRLPF
+
 
 StartFrame:
 ;╔═════════════════════════════════════════════════════════════════════════════╗
@@ -67,7 +86,7 @@ StartFrame:
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Let the TIA output the 37 Lines of the VBLANK                               ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
-    REPEAT 34
+    REPEAT 33
         sta WSYNC
     REPEND
 
@@ -82,11 +101,37 @@ StartFrame:
     LDY #1
     JSR SetObjectXPos
 
+    LDA BallXPos
+    LDY #4
+    JSR SetObjectXPos
+
     STA WSYNC
     STA HMOVE
 
     LDA #0
     STA VBLANK
+
+    LDA BallYPos
+    CLC
+    ADC BallYDirection
+    STA BallYPos
+
+.TestBall
+    LDA BallXPos
+    CMP #0
+    BMI .ResetBallPos
+    CMP #131
+    BPL .ResetBallPos
+    JMP .SkipReset
+
+.ResetBallPos:
+    LDA #60
+    STA BallXPos
+
+.SkipReset:
+    CLC
+    ADC BallXDirection
+    STA BallXPos
 
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ Start of the visible lines                                                  ║
@@ -94,8 +139,20 @@ StartFrame:
     LDA #COLOR_BG
     STA COLUBK
 
+    LDA #COLOR_PF
+    STA COLUPF
+
     LDX #96
 .GameLineLoop:
+.DrawBall
+    LDA #0
+    CPX BallYPos
+    BNE .SkipBallDraw
+
+    LDA #%00000010
+.SkipBallDraw
+    STA ENABL
+
 ;┌─────────────────────────────────────────────────────────────────────────────┐
 ;│ Check if its time to draw paddle 0                                          │
 ;└─────────────────────────────────────────────────────────────────────────────┘
@@ -124,7 +181,7 @@ StartFrame:
     LDA #0
 .DrawPaddle1:
     TAY
-    LDA Paddle0Sprite,Y
+    LDA Paddle1Sprite,Y
     STA WSYNC
     STA GRP1
     LDA Paddle0Color,Y
@@ -138,7 +195,7 @@ StartFrame:
 ;╚═════════════════════════════════════════════════════════════════════════════╝
     LDA #2
     STA VBLANK
-    REPEAT 30
+    REPEAT 28
         STA WSYNC
     REPEND
     LDA #0
@@ -153,7 +210,7 @@ CheckP0Up:
     BNE CheckP0Down
 
     LDA Paddle0YPos
-    CMP #75
+    CMP #100
     BPL CheckP0Down
     INC Paddle0YPos
 CheckP0Down:
@@ -171,7 +228,7 @@ CheckP1Up:
     BNE CheckP1Down
 
     LDA Paddle1YPos
-    CMP #75
+    CMP #100
     BPL CheckP1Down
     INC Paddle1YPos
 CheckP1Down:
@@ -184,26 +241,73 @@ CheckP1Down:
     BMI NoMoreInput
     DEC Paddle1YPos
 NoMoreInput:
+
 ;┌─────────────────────────────────────────────────────────────────────────────┐
-;│ Ajust the Y position                                                        │
+;│ Ball hiting roof/top                                                        │
 ;└─────────────────────────────────────────────────────────────────────────────┘
-;     DEC Paddle0YPos
-;     LDA Paddle0YPos
-;     CMP #0
-;     BNE SkipAjustY
-;     LDA #96
-;     STA Paddle0YPos
-; SkipAjustY:
+    LDA BallYPos
+    CMP #5
+    BCC hitBottom
+    CMP #100
+    BCS hitTop
+    JMP CheckCollisionP0BL
+hitBottom:
+    LDA #$01
+    STA BallYDirection
+    JMP CheckCollisionP0BL
+hitTop:
+    LDA #$FF
+    STA BallYDirection
 ;┌─────────────────────────────────────────────────────────────────────────────┐
-;│ Ajust the X position                                                        │
+;│ Collision checking                                                          │
 ;└─────────────────────────────────────────────────────────────────────────────┘
-;     INC PADDLE1_X_POS
-;     LDA PADDLE1_X_POS
-;     CMP #162
-;     BCC SkipAjustX
-;     LDA #0
-;     STA PADDLE1_X_POS
-; SkipAjustX:
+CheckCollisionP0BL:
+    LDA #%01000000
+    BIT CXP0FB
+    BNE CollisionP0BL
+    JMP CheckCollisionP1BL
+CollisionP0BL:
+    LDA #$01
+    STA BallXDirection
+    LDY Paddle0YPos
+    JMP AjustYBall
+
+CheckCollisionP1BL:
+    LDA #%01000000
+    BIT CXP1FB
+    BNE CollisionP1BL
+    JMP EndCollision
+CollisionP1BL:
+    LDA #$FF
+    STA BallXDirection
+    LDY Paddle1YPos
+    JMP AjustYBall
+
+AjustYBall:
+    LDA #PADDLE_HEIGHT
+    LSR
+    STA Temp
+    TYA
+    CLC
+    ADC Temp
+    STA Temp
+    LDA BallYPos
+    SEC
+    SBC Temp
+    BPL BallDown
+    JMP BallUp
+
+BallDown:
+    LDA #$01
+    STA BallYDirection
+    JMP EndCollision
+BallUp:
+    LDA #$FF
+    STA BallYDirection
+
+EndCollision:
+    STA CXCLR
+
 ;╔═════════════════════════════════════════════════════════════════════════════╗
 ;║ End of the Program                                                          ║
 ;╚═════════════════════════════════════════════════════════════════════════════╝
@@ -238,25 +342,45 @@ SetObjectXPos subroutine
 ;╚═════════════════════════════════════════════════════════════════════════════╝
 Paddle0Sprite:
     .byte #%00000000
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
-    .byte #%00000111
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
+    .byte #%11100000
 
 PADDLE_HEIGHT = . - Paddle0Sprite
+
+Paddle1Sprite:
+    .byte #%00000000
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
+    .byte #%00000111
 
 Paddle0Color:
     .byte #$00

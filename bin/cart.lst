@@ -379,33 +379,39 @@
      11  0000 ????						;╔═════════════════════════════════════════════════════════════════════════════╗
      12  0000 ????						;║ Variables Segment 							  ║
      13  0000 ????						;╚═════════════════════════════════════════════════════════════════════════════╝
-     14 U0082 ????				      seg.u	Variables
+     14 U0087 ????				      seg.u	Variables
      15 U0080					      org	$80
      16 U0080
      17 U0080		       00	   Paddle0YPos byte.b
      18 U0081		       00	   Paddle1YPos byte.b
      19 U0082
-     20 U0082							;╔═════════════════════════════════════════════════════════════════════════════╗
-     21 U0082							;║ Constants Segment 							  ║
-     22 U0082							;╚═════════════════════════════════════════════════════════════════════════════╝
-     23 U0082		       00 00	   COLOR_BG   =	$00
-     24 U0082		       00 04	   COLOR_PF   =	$04
-     25 U0082		       00 07	   HEIGHT_PF  =	$07
-     26 U0082
-     27 U0082		       00 00	   PADDLE0_X_POS =	$00
-     28 U0082		       00 7d	   PADDLE1_X_POS =	#125
-     29 U0082
-     30 U0082							;╔═════════════════════════════════════════════════════════════════════════════╗
-     31 U0082							;║ Macros Segment								  ║
-     32 U0082							;╚═════════════════════════════════════════════════════════════════════════════╝
-     33 U0082
-     34 U0082							;╔═════════════════════════════════════════════════════════════════════════════╗
-     35 U0082							;║ Start of the program							  ║
-     36 U0082							;╚═════════════════════════════════════════════════════════════════════════════╝
-     37  10000 ????				       seg	code
-     38  f000					      org	$F000
-     39  f000
-     40  f000				   Reset
+     20 U0082		       00	   BallXPos   byte.b
+     21 U0083		       00	   BallYPos   byte.b
+     22 U0084		       00	   BallYDirection byte.b
+     23 U0085		       00	   BallXDirection byte.b
+     24 U0086
+     25 U0086		       00	   Temp       byte.b
+     26 U0087
+     27 U0087							;╔═════════════════════════════════════════════════════════════════════════════╗
+     28 U0087							;║ Constants Segment 							  ║
+     29 U0087							;╚═════════════════════════════════════════════════════════════════════════════╝
+     30 U0087		       00 a0	   COLOR_BG   =	$A0
+     31 U0087		       00 0a	   COLOR_PF   =	$0A
+     32 U0087		       00 07	   HEIGHT_PF  =	$07
+     33 U0087
+     34 U0087		       00 10	   PADDLE0_X_POS =	$10
+     35 U0087		       00 78	   PADDLE1_X_POS =	#120
+     36 U0087
+     37 U0087							;╔═════════════════════════════════════════════════════════════════════════════╗
+     38 U0087							;║ Macros Segment								  ║
+     39 U0087							;╚═════════════════════════════════════════════════════════════════════════════╝
+     40 U0087							;╔═════════════════════════════════════════════════════════════════════════════╗
+     41 U0087							;║ Start of the program							  ║
+     42 U0087							;╚═════════════════════════════════════════════════════════════════════════════╝
+     43  10000 ????				       seg	code
+     44  f000					      org	$F000
+     45  f000
+     46  f000				   Reset
       0  f000					      CLEAN_START
       1  f000		       78		      sei
       2  f001		       d8		      cld
@@ -418,376 +424,488 @@
       9  f008		       48		      pha
      10  f009		       d0 fb		      bne	.CLEAR_STACK
      11  f00b
-     42  f00b
-     43  f00b							;╔═════════════════════════════════════════════════════════════════════════════╗
-     44  f00b							;║ Initialization of variables and TIA registers				  ║
-     45  f00b							;╚═════════════════════════════════════════════════════════════════════════════╝
-     46  f00b		       a9 46		      LDA	#70
-     47  f00d		       85 80		      STA	Paddle0YPos
-     48  f00f		       85 81		      STA	Paddle1YPos
-     49  f011
-     50  f011				   StartFrame
-     51  f011							;╔═════════════════════════════════════════════════════════════════════════════╗
-     52  f011							;║ Turn o VSYNC and VBLANK							  ║
-     53  f011							;╚═════════════════════════════════════════════════════════════════════════════╝
-     54  f011		       a9 02		      LDA	#02
-     55  f013		       85 01		      STA	VBLANK
-     56  f015		       85 00		      STA	VSYNC
-     57  f017
-     58  f017							;╔═════════════════════════════════════════════════════════════════════════════╗
-     59  f017							;║ Generate three lines of the VSYNC 					  ║
-     60  f017							;╚═════════════════════════════════════════════════════════════════════════════╝
-     61  f017					      REPEAT	3
-     62  f017		       85 02		      sta	WSYNC
-     61  f017					      REPEND
-     62  f019		       85 02		      sta	WSYNC
-     61  f019					      REPEND
-     62  f01b		       85 02		      sta	WSYNC
-     63  f01d					      REPEND
-     64  f01d		       a9 00		      LDA	#0
-     65  f01f		       85 00		      STA	VSYNC
-     66  f021
-     67  f021							;╔═════════════════════════════════════════════════════════════════════════════╗
-     68  f021							;║ Let the TIA output the 37 Lines of the VBLANK				  ║
-     69  f021							;╚═════════════════════════════════════════════════════════════════════════════╝
-     70  f021					      REPEAT	34
-     71  f021		       85 02		      sta	WSYNC
-     70  f021					      REPEND
-     71  f023		       85 02		      sta	WSYNC
-     70  f023					      REPEND
-     71  f025		       85 02		      sta	WSYNC
-     70  f025					      REPEND
-     71  f027		       85 02		      sta	WSYNC
-     70  f027					      REPEND
-     71  f029		       85 02		      sta	WSYNC
-     70  f029					      REPEND
-     71  f02b		       85 02		      sta	WSYNC
-     70  f02b					      REPEND
-     71  f02d		       85 02		      sta	WSYNC
-     70  f02d					      REPEND
-     71  f02f		       85 02		      sta	WSYNC
-     70  f02f					      REPEND
-     71  f031		       85 02		      sta	WSYNC
-     70  f031					      REPEND
-     71  f033		       85 02		      sta	WSYNC
-     70  f033					      REPEND
-     71  f035		       85 02		      sta	WSYNC
-     70  f035					      REPEND
-     71  f037		       85 02		      sta	WSYNC
-     70  f037					      REPEND
-     71  f039		       85 02		      sta	WSYNC
-     70  f039					      REPEND
-     71  f03b		       85 02		      sta	WSYNC
-     70  f03b					      REPEND
-     71  f03d		       85 02		      sta	WSYNC
-     70  f03d					      REPEND
-     71  f03f		       85 02		      sta	WSYNC
-     70  f03f					      REPEND
-     71  f041		       85 02		      sta	WSYNC
-     70  f041					      REPEND
-     71  f043		       85 02		      sta	WSYNC
-     70  f043					      REPEND
-     71  f045		       85 02		      sta	WSYNC
-     70  f045					      REPEND
-     71  f047		       85 02		      sta	WSYNC
-     70  f047					      REPEND
-     71  f049		       85 02		      sta	WSYNC
-     70  f049					      REPEND
-     71  f04b		       85 02		      sta	WSYNC
-     70  f04b					      REPEND
-     71  f04d		       85 02		      sta	WSYNC
-     70  f04d					      REPEND
-     71  f04f		       85 02		      sta	WSYNC
-     70  f04f					      REPEND
-     71  f051		       85 02		      sta	WSYNC
-     70  f051					      REPEND
-     71  f053		       85 02		      sta	WSYNC
-     70  f053					      REPEND
-     71  f055		       85 02		      sta	WSYNC
-     70  f055					      REPEND
-     71  f057		       85 02		      sta	WSYNC
-     70  f057					      REPEND
-     71  f059		       85 02		      sta	WSYNC
-     70  f059					      REPEND
-     71  f05b		       85 02		      sta	WSYNC
-     70  f05b					      REPEND
-     71  f05d		       85 02		      sta	WSYNC
-     70  f05d					      REPEND
-     71  f05f		       85 02		      sta	WSYNC
-     70  f05f					      REPEND
-     71  f061		       85 02		      sta	WSYNC
-     70  f061					      REPEND
-     71  f063		       85 02		      sta	WSYNC
-     72  f065					      REPEND
-     73  f065
-     74  f065							;┌─────────────────────────────────────────────────────────────────────────────┐
-     75  f065							;│ Calculation in VBLANK							  │
-     76  f065							;└─────────────────────────────────────────────────────────────────────────────┘
-     77  f065		       a9 00		      LDA	#PADDLE0_X_POS
-     78  f067		       a0 00		      LDY	#0
-     79  f069		       20 37 f1 	      JSR	SetObjectXPos
-     80  f06c
-     81  f06c		       a9 7d		      LDA	#PADDLE1_X_POS
-     82  f06e		       a0 01		      LDY	#1
-     83  f070		       20 37 f1 	      JSR	SetObjectXPos
-     84  f073
-     85  f073		       85 02		      STA	WSYNC
-     86  f075		       85 2a		      STA	HMOVE
-     87  f077
-     88  f077		       a9 00		      LDA	#0
-     89  f079		       85 01		      STA	VBLANK
-     90  f07b
-     91  f07b							;╔═════════════════════════════════════════════════════════════════════════════╗
-     92  f07b							;║ Start of the visible lines						  ║
-     93  f07b							;╚═════════════════════════════════════════════════════════════════════════════╝
-     94  f07b		       a9 00		      LDA	#COLOR_BG
-     95  f07d		       85 09		      STA	COLUBK
-     96  f07f
-     97  f07f		       a2 60		      LDX	#96
-     98  f081				   .GameLineLoop
-     99  f081							;┌─────────────────────────────────────────────────────────────────────────────┐
-    100  f081							;│ Check if its time to draw paddle 0					  │
-    101  f081							;└─────────────────────────────────────────────────────────────────────────────┘
-    102  f081		       8a		      TXA
-    103  f082		       38		      SEC
-    104  f083		       e5 80		      SBC	Paddle0YPos
-    105  f085		       c9 12		      CMP	#PADDLE_HEIGHT
-    106  f087		       90 02		      BCC	.DrawPaddle0
-    107  f089		       a9 00		      LDA	#0
-    108  f08b				   .DrawPaddle0
-    109  f08b		       a8		      TAY
-    110  f08c		       b9 4b f1 	      LDA	Paddle0Sprite,Y
-    111  f08f		       85 02		      STA	WSYNC
-    112  f091		       85 1b		      STA	GRP0
-    113  f093		       b9 5d f1 	      LDA	Paddle0Color,Y
-    114  f096		       85 06		      STA	COLUP0
-    115  f098
-    116  f098							;┌─────────────────────────────────────────────────────────────────────────────┐
-    117  f098							;│ Check if its time ddo draw paddle 1					  │
-    118  f098							;└─────────────────────────────────────────────────────────────────────────────┘
-    119  f098		       8a		      TXA
-    120  f099		       38		      SEC
-    121  f09a		       e5 81		      SBC	Paddle1YPos
-    122  f09c		       c9 12		      CMP	#PADDLE_HEIGHT
-    123  f09e		       90 02		      BCC	.DrawPaddle1
-    124  f0a0		       a9 00		      LDA	#0
-    125  f0a2				   .DrawPaddle1
-    126  f0a2		       a8		      TAY
-    127  f0a3		       b9 4b f1 	      LDA	Paddle0Sprite,Y
-    128  f0a6		       85 02		      STA	WSYNC
-    129  f0a8		       85 1c		      STA	GRP1
-    130  f0aa		       b9 5d f1 	      LDA	Paddle0Color,Y
-    131  f0ad		       85 07		      STA	COLUP1
-    132  f0af
-    133  f0af		       ca		      DEX
-    134  f0b0		       d0 cf		      BNE	.GameLineLoop
-    135  f0b2		       a9 00		      LDA	#0
-    136  f0b4							;╔═════════════════════════════════════════════════════════════════════════════╗
-    137  f0b4							;║ Output the 30 more VBLANK overscan lines					  ║
-    138  f0b4							;╚═════════════════════════════════════════════════════════════════════════════╝
-    139  f0b4		       a9 02		      LDA	#2
-    140  f0b6		       85 01		      STA	VBLANK
-    141  f0b8					      REPEAT	30
-    142  f0b8		       85 02		      STA	WSYNC
-    141  f0b8					      REPEND
-    142  f0ba		       85 02		      STA	WSYNC
-    141  f0ba					      REPEND
-    142  f0bc		       85 02		      STA	WSYNC
-    141  f0bc					      REPEND
-    142  f0be		       85 02		      STA	WSYNC
-    141  f0be					      REPEND
-    142  f0c0		       85 02		      STA	WSYNC
-    141  f0c0					      REPEND
-    142  f0c2		       85 02		      STA	WSYNC
-    141  f0c2					      REPEND
-    142  f0c4		       85 02		      STA	WSYNC
-    141  f0c4					      REPEND
-    142  f0c6		       85 02		      STA	WSYNC
-    141  f0c6					      REPEND
-    142  f0c8		       85 02		      STA	WSYNC
-    141  f0c8					      REPEND
-    142  f0ca		       85 02		      STA	WSYNC
-    141  f0ca					      REPEND
-    142  f0cc		       85 02		      STA	WSYNC
-    141  f0cc					      REPEND
-    142  f0ce		       85 02		      STA	WSYNC
-    141  f0ce					      REPEND
-    142  f0d0		       85 02		      STA	WSYNC
-    141  f0d0					      REPEND
-    142  f0d2		       85 02		      STA	WSYNC
-    141  f0d2					      REPEND
-    142  f0d4		       85 02		      STA	WSYNC
-    141  f0d4					      REPEND
-    142  f0d6		       85 02		      STA	WSYNC
-    141  f0d6					      REPEND
-    142  f0d8		       85 02		      STA	WSYNC
-    141  f0d8					      REPEND
-    142  f0da		       85 02		      STA	WSYNC
-    141  f0da					      REPEND
-    142  f0dc		       85 02		      STA	WSYNC
-    141  f0dc					      REPEND
-    142  f0de		       85 02		      STA	WSYNC
-    141  f0de					      REPEND
-    142  f0e0		       85 02		      STA	WSYNC
-    141  f0e0					      REPEND
-    142  f0e2		       85 02		      STA	WSYNC
-    141  f0e2					      REPEND
-    142  f0e4		       85 02		      STA	WSYNC
-    141  f0e4					      REPEND
-    142  f0e6		       85 02		      STA	WSYNC
-    141  f0e6					      REPEND
-    142  f0e8		       85 02		      STA	WSYNC
-    141  f0e8					      REPEND
-    142  f0ea		       85 02		      STA	WSYNC
-    141  f0ea					      REPEND
-    142  f0ec		       85 02		      STA	WSYNC
-    141  f0ec					      REPEND
-    142  f0ee		       85 02		      STA	WSYNC
-    141  f0ee					      REPEND
-    142  f0f0		       85 02		      STA	WSYNC
-    141  f0f0					      REPEND
-    142  f0f2		       85 02		      STA	WSYNC
-    143  f0f4					      REPEND
-    144  f0f4		       a9 00		      LDA	#0
-    145  f0f6		       85 01		      STA	VBLANK
-    146  f0f8
-    147  f0f8							;┌─────────────────────────────────────────────────────────────────────────────┐
-    148  f0f8							;│ Input-check section							  │
-    149  f0f8							;└─────────────────────────────────────────────────────────────────────────────┘
-    150  f0f8				   CheckP0Up
-    151  f0f8		       a9 10		      LDA	#16
-    152  f0fa		       2c 80 02 	      BIT	SWCHA
-    153  f0fd		       d0 08		      BNE	CheckP0Down
-    154  f0ff
-    155  f0ff		       a5 80		      LDA	Paddle0YPos
-    156  f101		       c9 4b		      CMP	#75
-    157  f103		       10 02		      BPL	CheckP0Down
-    158  f105		       e6 80		      INC	Paddle0YPos
-    159  f107				   CheckP0Down
-    160  f107		       a9 20		      LDA	#32
-    161  f109		       2c 80 02 	      BIT	SWCHA
-    162  f10c		       d0 08		      BNE	CheckP1Up
-    163  f10e
-    164  f10e		       a5 80		      LDA	Paddle0YPos
-    165  f110		       c9 02		      CMP	#2
-    166  f112		       30 02		      BMI	CheckP1Up
-    167  f114		       c6 80		      DEC	Paddle0YPos
-    168  f116				   CheckP1Up
-    169  f116		       a9 01		      LDA	#1
-    170  f118		       2c 80 02 	      BIT	SWCHA
-    171  f11b		       d0 08		      BNE	CheckP1Down
-    172  f11d
-    173  f11d		       a5 81		      LDA	Paddle1YPos
-    174  f11f		       c9 4b		      CMP	#75
-    175  f121		       10 02		      BPL	CheckP1Down
-    176  f123		       e6 81		      INC	Paddle1YPos
-    177  f125				   CheckP1Down
-    178  f125		       a9 02		      LDA	#2
-    179  f127		       2c 80 02 	      BIT	SWCHA
-    180  f12a		       d0 08		      BNE	NoMoreInput
-    181  f12c
-    182  f12c		       a5 81		      LDA	Paddle1YPos
-    183  f12e		       c9 02		      CMP	#2
-    184  f130		       30 02		      BMI	NoMoreInput
-    185  f132		       c6 81		      DEC	Paddle1YPos
-    186  f134				   NoMoreInput
-    187  f134							;┌─────────────────────────────────────────────────────────────────────────────┐
-    188  f134							;│ Ajust the Y position							  │
-    189  f134							;└─────────────────────────────────────────────────────────────────────────────┘
-    190  f134							;     DEC Paddle0YPos
-    191  f134							;     LDA Paddle0YPos
-    192  f134							;     CMP #0
-    193  f134							;     BNE SkipAjustY
-    194  f134							;     LDA #96
-    195  f134							;     STA Paddle0YPos
-    196  f134							; SkipAjustY:
-    197  f134							;┌─────────────────────────────────────────────────────────────────────────────┐
-    198  f134							;│ Ajust the X position							  │
-    199  f134							;└─────────────────────────────────────────────────────────────────────────────┘
-    200  f134							;     INC PADDLE1_X_POS
-    201  f134							;     LDA PADDLE1_X_POS
-    202  f134							;     CMP #162
-    203  f134							;     BCC SkipAjustX
-    204  f134							;     LDA #0
-    205  f134							;     STA PADDLE1_X_POS
-    206  f134							; SkipAjustX:
-    207  f134							;╔═════════════════════════════════════════════════════════════════════════════╗
-    208  f134							;║ End of the Program							  ║
-    209  f134							;╚═════════════════════════════════════════════════════════════════════════════╝
-    210  f134		       4c 11 f0 	      JMP	StartFrame
-    211  f137
-    212  f137							;╔═════════════════════════════════════════════════════════════════════════════╗
-    213  f137							;║ Subroutines Segment							  ║
-    214  f137							;╚═════════════════════════════════════════════════════════════════════════════╝
-    215  f137							;┌─────────────────────────────────────────────────────────────────────────────┐
-    216  f137							;│ Subroutine to handle o object horizontal position with fine offset	  │
-    217  f137							;├─────────────────────────────────────────────────────────────────────────────┤
-    218  f137							;│ A is the target x-coord position in pixels of our object			  │
-    219  f137							;│ Y is the object type (0:P0, 1:P1, 2:M0, 3:M1, 4:B 			  │
-    220  f137							;└─────────────────────────────────────────────────────────────────────────────┘
-    221  f137				   SetObjectXPos subroutine
-    222  f137		       85 02		      STA	WSYNC
-    223  f139		       38		      SEC
-    224  f13a				   .Div15Loop
-    225  f13a		       e9 0f		      SBC	#15
-    226  f13c		       b0 fc		      BCS	.Div15Loop
-    227  f13e		       49 07		      EOR	#7
-    228  f140		       0a		      ASL
-    229  f141		       0a		      ASL
-    230  f142		       0a		      ASL
-    231  f143		       0a		      ASL
-    232  f144		       99 20 00 	      STA	HMP0,Y
-    233  f147		       99 10 00 	      STA	RESP0,Y
-    234  f14a		       60		      RTS
-    235  f14b
-    236  f14b							;╔═════════════════════════════════════════════════════════════════════════════╗
-    237  f14b							;║ Lookups Segment								  ║
-    238  f14b							;╚═════════════════════════════════════════════════════════════════════════════╝
-    239  f14b				   Paddle0Sprite
-    240  f14b		       00		      .byte.b	#%00000000
-    241  f14c		       07		      .byte.b	#%00000111
-    242  f14d		       07		      .byte.b	#%00000111
-    243  f14e		       07		      .byte.b	#%00000111
-    244  f14f		       07		      .byte.b	#%00000111
-    245  f150		       07		      .byte.b	#%00000111
-    246  f151		       07		      .byte.b	#%00000111
-    247  f152		       07		      .byte.b	#%00000111
-    248  f153		       07		      .byte.b	#%00000111
-    249  f154		       07		      .byte.b	#%00000111
-    250  f155		       07		      .byte.b	#%00000111
-    251  f156		       07		      .byte.b	#%00000111
-    252  f157		       07		      .byte.b	#%00000111
-    253  f158		       07		      .byte.b	#%00000111
-    254  f159		       07		      .byte.b	#%00000111
-    255  f15a		       07		      .byte.b	#%00000111
-    256  f15b		       07		      .byte.b	#%00000111
-    257  f15c		       07		      .byte.b	#%00000111
-    258  f15d
-    259  f15d		       00 12	   PADDLE_HEIGHT =	. - Paddle0Sprite
-    260  f15d
-    261  f15d				   Paddle0Color
-    262  f15d		       00		      .byte.b	#$00
-    263  f15e		       0a		      .byte.b	#$0A
-    264  f15f		       0a		      .byte.b	#$0A
-    265  f160		       0a		      .byte.b	#$0A
-    266  f161		       0a		      .byte.b	#$0A
-    267  f162		       0a		      .byte.b	#$0A
-    268  f163		       0a		      .byte.b	#$0A
-    269  f164		       0a		      .byte.b	#$0A
-    270  f165		       0a		      .byte.b	#$0A
-    271  f166		       0a		      .byte.b	#$0A
-    272  f167		       0a		      .byte.b	#$0A
-    273  f168		       0a		      .byte.b	#$0A
-    274  f169		       0a		      .byte.b	#$0A
-    275  f16a		       0a		      .byte.b	#$0A
-    276  f16b		       0a		      .byte.b	#$0A
-    277  f16c		       0a		      .byte.b	#$0A
-    278  f16d		       0a		      .byte.b	#$0A
-    279  f16e		       0a		      .byte.b	#$0A
-    280  f16f
-    281  f16f							;╔═════════════════════════════════════════════════════════════════════════════╗
-    282  f16f							;║ Setting Reset memory							  ║
-    283  f16f							;╚═════════════════════════════════════════════════════════════════════════════╝
-    284  fffc					      org	$FFFC
-    285  fffc		       00 f0		      .word.w	Reset
-    286  fffe		       00 f0		      .word.w	Reset
+     48  f00b
+     49  f00b							;╔═════════════════════════════════════════════════════════════════════════════╗
+     50  f00b							;║ Initialization of variables and TIA registers				  ║
+     51  f00b							;╚═════════════════════════════════════════════════════════════════════════════╝
+     52  f00b		       a9 37		      LDA	#55
+     53  f00d		       85 80		      STA	Paddle0YPos
+     54  f00f		       85 81		      STA	Paddle1YPos
+     55  f011
+     56  f011		       a9 3c		      LDA	#60
+     57  f013		       85 83		      STA	BallYPos
+     58  f015		       85 82		      STA	BallXPos
+     59  f017
+     60  f017		       a9 00		      LDA	#$00
+     61  f019		       85 84		      STA	BallYDirection
+     62  f01b		       a9 ff		      LDA	#$FF
+     63  f01d		       85 85		      STA	BallXDirection
+     64  f01f
+     65  f01f							; LDA #%00010000
+     66  f01f							; STA CTRLPF
+     67  f01f
+     68  f01f
+     69  f01f				   StartFrame
+     70  f01f							;╔═════════════════════════════════════════════════════════════════════════════╗
+     71  f01f							;║ Turn o VSYNC and VBLANK							  ║
+     72  f01f							;╚═════════════════════════════════════════════════════════════════════════════╝
+     73  f01f		       a9 02		      LDA	#02
+     74  f021		       85 01		      STA	VBLANK
+     75  f023		       85 00		      STA	VSYNC
+     76  f025
+     77  f025							;╔═════════════════════════════════════════════════════════════════════════════╗
+     78  f025							;║ Generate three lines of the VSYNC 					  ║
+     79  f025							;╚═════════════════════════════════════════════════════════════════════════════╝
+     80  f025					      REPEAT	3
+     81  f025		       85 02		      sta	WSYNC
+     80  f025					      REPEND
+     81  f027		       85 02		      sta	WSYNC
+     80  f027					      REPEND
+     81  f029		       85 02		      sta	WSYNC
+     82  f02b					      REPEND
+     83  f02b		       a9 00		      LDA	#0
+     84  f02d		       85 00		      STA	VSYNC
+     85  f02f
+     86  f02f							;╔═════════════════════════════════════════════════════════════════════════════╗
+     87  f02f							;║ Let the TIA output the 37 Lines of the VBLANK				  ║
+     88  f02f							;╚═════════════════════════════════════════════════════════════════════════════╝
+     89  f02f					      REPEAT	33
+     90  f02f		       85 02		      sta	WSYNC
+     89  f02f					      REPEND
+     90  f031		       85 02		      sta	WSYNC
+     89  f031					      REPEND
+     90  f033		       85 02		      sta	WSYNC
+     89  f033					      REPEND
+     90  f035		       85 02		      sta	WSYNC
+     89  f035					      REPEND
+     90  f037		       85 02		      sta	WSYNC
+     89  f037					      REPEND
+     90  f039		       85 02		      sta	WSYNC
+     89  f039					      REPEND
+     90  f03b		       85 02		      sta	WSYNC
+     89  f03b					      REPEND
+     90  f03d		       85 02		      sta	WSYNC
+     89  f03d					      REPEND
+     90  f03f		       85 02		      sta	WSYNC
+     89  f03f					      REPEND
+     90  f041		       85 02		      sta	WSYNC
+     89  f041					      REPEND
+     90  f043		       85 02		      sta	WSYNC
+     89  f043					      REPEND
+     90  f045		       85 02		      sta	WSYNC
+     89  f045					      REPEND
+     90  f047		       85 02		      sta	WSYNC
+     89  f047					      REPEND
+     90  f049		       85 02		      sta	WSYNC
+     89  f049					      REPEND
+     90  f04b		       85 02		      sta	WSYNC
+     89  f04b					      REPEND
+     90  f04d		       85 02		      sta	WSYNC
+     89  f04d					      REPEND
+     90  f04f		       85 02		      sta	WSYNC
+     89  f04f					      REPEND
+     90  f051		       85 02		      sta	WSYNC
+     89  f051					      REPEND
+     90  f053		       85 02		      sta	WSYNC
+     89  f053					      REPEND
+     90  f055		       85 02		      sta	WSYNC
+     89  f055					      REPEND
+     90  f057		       85 02		      sta	WSYNC
+     89  f057					      REPEND
+     90  f059		       85 02		      sta	WSYNC
+     89  f059					      REPEND
+     90  f05b		       85 02		      sta	WSYNC
+     89  f05b					      REPEND
+     90  f05d		       85 02		      sta	WSYNC
+     89  f05d					      REPEND
+     90  f05f		       85 02		      sta	WSYNC
+     89  f05f					      REPEND
+     90  f061		       85 02		      sta	WSYNC
+     89  f061					      REPEND
+     90  f063		       85 02		      sta	WSYNC
+     89  f063					      REPEND
+     90  f065		       85 02		      sta	WSYNC
+     89  f065					      REPEND
+     90  f067		       85 02		      sta	WSYNC
+     89  f067					      REPEND
+     90  f069		       85 02		      sta	WSYNC
+     89  f069					      REPEND
+     90  f06b		       85 02		      sta	WSYNC
+     89  f06b					      REPEND
+     90  f06d		       85 02		      sta	WSYNC
+     89  f06d					      REPEND
+     90  f06f		       85 02		      sta	WSYNC
+     91  f071					      REPEND
+     92  f071
+     93  f071							;┌─────────────────────────────────────────────────────────────────────────────┐
+     94  f071							;│ Calculation in VBLANK							  │
+     95  f071							;└─────────────────────────────────────────────────────────────────────────────┘
+     96  f071		       a9 10		      LDA	#PADDLE0_X_POS
+     97  f073		       a0 00		      LDY	#0
+     98  f075		       20 cf f1 	      JSR	SetObjectXPos
+     99  f078
+    100  f078		       a9 78		      LDA	#PADDLE1_X_POS
+    101  f07a		       a0 01		      LDY	#1
+    102  f07c		       20 cf f1 	      JSR	SetObjectXPos
+    103  f07f
+    104  f07f		       a5 82		      LDA	BallXPos
+    105  f081		       a0 04		      LDY	#4
+    106  f083		       20 cf f1 	      JSR	SetObjectXPos
+    107  f086
+    108  f086		       85 02		      STA	WSYNC
+    109  f088		       85 2a		      STA	HMOVE
+    110  f08a
+    111  f08a		       a9 00		      LDA	#0
+    112  f08c		       85 01		      STA	VBLANK
+    113  f08e
+    114  f08e		       a5 83		      LDA	BallYPos
+    115  f090		       18		      CLC
+    116  f091		       65 84		      ADC	BallYDirection
+    117  f093		       85 83		      STA	BallYPos
+    118  f095
+    119  f095				   .TestBall
+    120  f095		       a5 82		      LDA	BallXPos
+    121  f097		       c9 00		      CMP	#0
+    122  f099		       30 07		      BMI	.ResetBallPos
+    123  f09b		       c9 83		      CMP	#131
+    124  f09d		       10 03		      BPL	.ResetBallPos
+    125  f09f		       4c a6 f0 	      JMP	.SkipReset
+    126  f0a2
+    127  f0a2				   .ResetBallPos
+    128  f0a2		       a9 3c		      LDA	#60
+    129  f0a4		       85 82		      STA	BallXPos
+    130  f0a6
+    131  f0a6				   .SkipReset
+    132  f0a6		       18		      CLC
+    133  f0a7		       65 85		      ADC	BallXDirection
+    134  f0a9		       85 82		      STA	BallXPos
+    135  f0ab
+    136  f0ab							;╔═════════════════════════════════════════════════════════════════════════════╗
+    137  f0ab							;║ Start of the visible lines						  ║
+    138  f0ab							;╚═════════════════════════════════════════════════════════════════════════════╝
+    139  f0ab		       a9 a0		      LDA	#COLOR_BG
+    140  f0ad		       85 09		      STA	COLUBK
+    141  f0af
+    142  f0af		       a9 0a		      LDA	#COLOR_PF
+    143  f0b1		       85 08		      STA	COLUPF
+    144  f0b3
+    145  f0b3		       a2 60		      LDX	#96
+    146  f0b5				   .GameLineLoop
+    147  f0b5				   .DrawBall
+    148  f0b5		       a9 00		      LDA	#0
+    149  f0b7		       e4 83		      CPX	BallYPos
+    150  f0b9		       d0 02		      BNE	.SkipBallDraw
+    151  f0bb
+    152  f0bb		       a9 02		      LDA	#%00000010
+    153  f0bd				   .SkipBallDraw
+    154  f0bd		       85 1f		      STA	ENABL
+    155  f0bf
+    156  f0bf							;┌─────────────────────────────────────────────────────────────────────────────┐
+    157  f0bf							;│ Check if its time to draw paddle 0					  │
+    158  f0bf							;└─────────────────────────────────────────────────────────────────────────────┘
+    159  f0bf		       8a		      TXA
+    160  f0c0		       38		      SEC
+    161  f0c1		       e5 80		      SBC	Paddle0YPos
+    162  f0c3		       c9 12		      CMP	#PADDLE_HEIGHT
+    163  f0c5		       90 02		      BCC	.DrawPaddle0
+    164  f0c7		       a9 00		      LDA	#0
+    165  f0c9				   .DrawPaddle0
+    166  f0c9		       a8		      TAY
+    167  f0ca		       b9 e3 f1 	      LDA	Paddle0Sprite,Y
+    168  f0cd		       85 02		      STA	WSYNC
+    169  f0cf		       85 1b		      STA	GRP0
+    170  f0d1		       b9 07 f2 	      LDA	Paddle0Color,Y
+    171  f0d4		       85 06		      STA	COLUP0
+    172  f0d6
+    173  f0d6							;┌─────────────────────────────────────────────────────────────────────────────┐
+    174  f0d6							;│ Check if its time ddo draw paddle 1					  │
+    175  f0d6							;└─────────────────────────────────────────────────────────────────────────────┘
+    176  f0d6		       8a		      TXA
+    177  f0d7		       38		      SEC
+    178  f0d8		       e5 81		      SBC	Paddle1YPos
+    179  f0da		       c9 12		      CMP	#PADDLE_HEIGHT
+    180  f0dc		       90 02		      BCC	.DrawPaddle1
+    181  f0de		       a9 00		      LDA	#0
+    182  f0e0				   .DrawPaddle1
+    183  f0e0		       a8		      TAY
+    184  f0e1		       b9 f5 f1 	      LDA	Paddle1Sprite,Y
+    185  f0e4		       85 02		      STA	WSYNC
+    186  f0e6		       85 1c		      STA	GRP1
+    187  f0e8		       b9 07 f2 	      LDA	Paddle0Color,Y
+    188  f0eb		       85 07		      STA	COLUP1
+    189  f0ed
+    190  f0ed		       ca		      DEX
+    191  f0ee		       d0 c5		      BNE	.GameLineLoop
+    192  f0f0		       a9 00		      LDA	#0
+    193  f0f2							;╔═════════════════════════════════════════════════════════════════════════════╗
+    194  f0f2							;║ Output the 30 more VBLANK overscan lines					  ║
+    195  f0f2							;╚═════════════════════════════════════════════════════════════════════════════╝
+    196  f0f2		       a9 02		      LDA	#2
+    197  f0f4		       85 01		      STA	VBLANK
+    198  f0f6					      REPEAT	28
+    199  f0f6		       85 02		      STA	WSYNC
+    198  f0f6					      REPEND
+    199  f0f8		       85 02		      STA	WSYNC
+    198  f0f8					      REPEND
+    199  f0fa		       85 02		      STA	WSYNC
+    198  f0fa					      REPEND
+    199  f0fc		       85 02		      STA	WSYNC
+    198  f0fc					      REPEND
+    199  f0fe		       85 02		      STA	WSYNC
+    198  f0fe					      REPEND
+    199  f100		       85 02		      STA	WSYNC
+    198  f100					      REPEND
+    199  f102		       85 02		      STA	WSYNC
+    198  f102					      REPEND
+    199  f104		       85 02		      STA	WSYNC
+    198  f104					      REPEND
+    199  f106		       85 02		      STA	WSYNC
+    198  f106					      REPEND
+    199  f108		       85 02		      STA	WSYNC
+    198  f108					      REPEND
+    199  f10a		       85 02		      STA	WSYNC
+    198  f10a					      REPEND
+    199  f10c		       85 02		      STA	WSYNC
+    198  f10c					      REPEND
+    199  f10e		       85 02		      STA	WSYNC
+    198  f10e					      REPEND
+    199  f110		       85 02		      STA	WSYNC
+    198  f110					      REPEND
+    199  f112		       85 02		      STA	WSYNC
+    198  f112					      REPEND
+    199  f114		       85 02		      STA	WSYNC
+    198  f114					      REPEND
+    199  f116		       85 02		      STA	WSYNC
+    198  f116					      REPEND
+    199  f118		       85 02		      STA	WSYNC
+    198  f118					      REPEND
+    199  f11a		       85 02		      STA	WSYNC
+    198  f11a					      REPEND
+    199  f11c		       85 02		      STA	WSYNC
+    198  f11c					      REPEND
+    199  f11e		       85 02		      STA	WSYNC
+    198  f11e					      REPEND
+    199  f120		       85 02		      STA	WSYNC
+    198  f120					      REPEND
+    199  f122		       85 02		      STA	WSYNC
+    198  f122					      REPEND
+    199  f124		       85 02		      STA	WSYNC
+    198  f124					      REPEND
+    199  f126		       85 02		      STA	WSYNC
+    198  f126					      REPEND
+    199  f128		       85 02		      STA	WSYNC
+    198  f128					      REPEND
+    199  f12a		       85 02		      STA	WSYNC
+    198  f12a					      REPEND
+    199  f12c		       85 02		      STA	WSYNC
+    200  f12e					      REPEND
+    201  f12e		       a9 00		      LDA	#0
+    202  f130		       85 01		      STA	VBLANK
+    203  f132
+    204  f132							;┌─────────────────────────────────────────────────────────────────────────────┐
+    205  f132							;│ Input-check section							  │
+    206  f132							;└─────────────────────────────────────────────────────────────────────────────┘
+    207  f132				   CheckP0Up
+    208  f132		       a9 10		      LDA	#16
+    209  f134		       2c 80 02 	      BIT	SWCHA
+    210  f137		       d0 08		      BNE	CheckP0Down
+    211  f139
+    212  f139		       a5 80		      LDA	Paddle0YPos
+    213  f13b		       c9 64		      CMP	#100
+    214  f13d		       10 02		      BPL	CheckP0Down
+    215  f13f		       e6 80		      INC	Paddle0YPos
+    216  f141				   CheckP0Down
+    217  f141		       a9 20		      LDA	#32
+    218  f143		       2c 80 02 	      BIT	SWCHA
+    219  f146		       d0 08		      BNE	CheckP1Up
+    220  f148
+    221  f148		       a5 80		      LDA	Paddle0YPos
+    222  f14a		       c9 02		      CMP	#2
+    223  f14c		       30 02		      BMI	CheckP1Up
+    224  f14e		       c6 80		      DEC	Paddle0YPos
+    225  f150				   CheckP1Up
+    226  f150		       a9 01		      LDA	#1
+    227  f152		       2c 80 02 	      BIT	SWCHA
+    228  f155		       d0 08		      BNE	CheckP1Down
+    229  f157
+    230  f157		       a5 81		      LDA	Paddle1YPos
+    231  f159		       c9 64		      CMP	#100
+    232  f15b		       10 02		      BPL	CheckP1Down
+    233  f15d		       e6 81		      INC	Paddle1YPos
+    234  f15f				   CheckP1Down
+    235  f15f		       a9 02		      LDA	#2
+    236  f161		       2c 80 02 	      BIT	SWCHA
+    237  f164		       d0 08		      BNE	NoMoreInput
+    238  f166
+    239  f166		       a5 81		      LDA	Paddle1YPos
+    240  f168		       c9 02		      CMP	#2
+    241  f16a		       30 02		      BMI	NoMoreInput
+    242  f16c		       c6 81		      DEC	Paddle1YPos
+    243  f16e				   NoMoreInput
+    244  f16e
+    245  f16e							;┌─────────────────────────────────────────────────────────────────────────────┐
+    246  f16e							;│ Ball hiting roof/top							  │
+    247  f16e							;└─────────────────────────────────────────────────────────────────────────────┘
+    248  f16e		       a5 83		      LDA	BallYPos
+    249  f170		       c9 05		      CMP	#5
+    250  f172		       90 07		      BCC	hitBottom
+    251  f174		       c9 64		      CMP	#100
+    252  f176		       b0 0a		      BCS	hitTop
+    253  f178		       4c 86 f1 	      JMP	CheckCollisionP0BL
+    254  f17b				   hitBottom
+    255  f17b		       a9 01		      LDA	#$01
+    256  f17d		       85 84		      STA	BallYDirection
+    257  f17f		       4c 86 f1 	      JMP	CheckCollisionP0BL
+    258  f182				   hitTop
+    259  f182		       a9 ff		      LDA	#$FF
+    260  f184		       85 84		      STA	BallYDirection
+    261  f186							;┌─────────────────────────────────────────────────────────────────────────────┐
+    262  f186							;│ Collision checking							  │
+    263  f186							;└─────────────────────────────────────────────────────────────────────────────┘
+    264  f186				   CheckCollisionP0BL
+    265  f186		       a9 40		      LDA	#%01000000
+    266  f188		       24 02		      BIT	CXP0FB
+    267  f18a		       d0 03		      BNE	CollisionP0BL
+    268  f18c		       4c 98 f1 	      JMP	CheckCollisionP1BL
+    269  f18f				   CollisionP0BL
+    270  f18f		       a9 01		      LDA	#$01
+    271  f191		       85 85		      STA	BallXDirection
+    272  f193		       a4 80		      LDY	Paddle0YPos
+    273  f195		       4c aa f1 	      JMP	AjustYBall
+    274  f198
+    275  f198				   CheckCollisionP1BL
+    276  f198		       a9 40		      LDA	#%01000000
+    277  f19a		       24 03		      BIT	CXP1FB
+    278  f19c		       d0 03		      BNE	CollisionP1BL
+    279  f19e		       4c ca f1 	      JMP	EndCollision
+    280  f1a1				   CollisionP1BL
+    281  f1a1		       a9 ff		      LDA	#$FF
+    282  f1a3		       85 85		      STA	BallXDirection
+    283  f1a5		       a4 81		      LDY	Paddle1YPos
+    284  f1a7		       4c aa f1 	      JMP	AjustYBall
+    285  f1aa
+    286  f1aa				   AjustYBall
+    287  f1aa		       a9 12		      LDA	#PADDLE_HEIGHT
+    288  f1ac		       4a		      LSR
+    289  f1ad		       85 86		      STA	Temp
+    290  f1af		       98		      TYA
+    291  f1b0		       18		      CLC
+    292  f1b1		       65 86		      ADC	Temp
+    293  f1b3		       85 86		      STA	Temp
+    294  f1b5		       a5 83		      LDA	BallYPos
+    295  f1b7		       38		      SEC
+    296  f1b8		       e5 86		      SBC	Temp
+    297  f1ba		       10 03		      BPL	BallDown
+    298  f1bc		       4c c6 f1 	      JMP	BallUp
+    299  f1bf
+    300  f1bf				   BallDown
+    301  f1bf		       a9 01		      LDA	#$01
+    302  f1c1		       85 84		      STA	BallYDirection
+    303  f1c3		       4c ca f1 	      JMP	EndCollision
+    304  f1c6				   BallUp
+    305  f1c6		       a9 ff		      LDA	#$FF
+    306  f1c8		       85 84		      STA	BallYDirection
+    307  f1ca
+    308  f1ca				   EndCollision
+    309  f1ca		       85 2c		      STA	CXCLR
+    310  f1cc
+    311  f1cc							;╔═════════════════════════════════════════════════════════════════════════════╗
+    312  f1cc							;║ End of the Program							  ║
+    313  f1cc							;╚═════════════════════════════════════════════════════════════════════════════╝
+    314  f1cc		       4c 1f f0 	      JMP	StartFrame
+    315  f1cf
+    316  f1cf							;╔═════════════════════════════════════════════════════════════════════════════╗
+    317  f1cf							;║ Subroutines Segment							  ║
+    318  f1cf							;╚═════════════════════════════════════════════════════════════════════════════╝
+    319  f1cf							;┌─────────────────────────────────────────────────────────────────────────────┐
+    320  f1cf							;│ Subroutine to handle o object horizontal position with fine offset	  │
+    321  f1cf							;├─────────────────────────────────────────────────────────────────────────────┤
+    322  f1cf							;│ A is the target x-coord position in pixels of our object			  │
+    323  f1cf							;│ Y is the object type (0:P0, 1:P1, 2:M0, 3:M1, 4:B 			  │
+    324  f1cf							;└─────────────────────────────────────────────────────────────────────────────┘
+    325  f1cf				   SetObjectXPos subroutine
+    326  f1cf		       85 02		      STA	WSYNC
+    327  f1d1		       38		      SEC
+    328  f1d2				   .Div15Loop
+    329  f1d2		       e9 0f		      SBC	#15
+    330  f1d4		       b0 fc		      BCS	.Div15Loop
+    331  f1d6		       49 07		      EOR	#7
+    332  f1d8		       0a		      ASL
+    333  f1d9		       0a		      ASL
+    334  f1da		       0a		      ASL
+    335  f1db		       0a		      ASL
+    336  f1dc		       99 20 00 	      STA	HMP0,Y
+    337  f1df		       99 10 00 	      STA	RESP0,Y
+    338  f1e2		       60		      RTS
+    339  f1e3
+    340  f1e3							;╔═════════════════════════════════════════════════════════════════════════════╗
+    341  f1e3							;║ Lookups Segment								  ║
+    342  f1e3							;╚═════════════════════════════════════════════════════════════════════════════╝
+    343  f1e3				   Paddle0Sprite
+    344  f1e3		       00		      .byte.b	#%00000000
+    345  f1e4		       e0		      .byte.b	#%11100000
+    346  f1e5		       e0		      .byte.b	#%11100000
+    347  f1e6		       e0		      .byte.b	#%11100000
+    348  f1e7		       e0		      .byte.b	#%11100000
+    349  f1e8		       e0		      .byte.b	#%11100000
+    350  f1e9		       e0		      .byte.b	#%11100000
+    351  f1ea		       e0		      .byte.b	#%11100000
+    352  f1eb		       e0		      .byte.b	#%11100000
+    353  f1ec		       e0		      .byte.b	#%11100000
+    354  f1ed		       e0		      .byte.b	#%11100000
+    355  f1ee		       e0		      .byte.b	#%11100000
+    356  f1ef		       e0		      .byte.b	#%11100000
+    357  f1f0		       e0		      .byte.b	#%11100000
+    358  f1f1		       e0		      .byte.b	#%11100000
+    359  f1f2		       e0		      .byte.b	#%11100000
+    360  f1f3		       e0		      .byte.b	#%11100000
+    361  f1f4		       e0		      .byte.b	#%11100000
+    362  f1f5
+    363  f1f5		       00 12	   PADDLE_HEIGHT =	. - Paddle0Sprite
+    364  f1f5
+    365  f1f5				   Paddle1Sprite
+    366  f1f5		       00		      .byte.b	#%00000000
+    367  f1f6		       07		      .byte.b	#%00000111
+    368  f1f7		       07		      .byte.b	#%00000111
+    369  f1f8		       07		      .byte.b	#%00000111
+    370  f1f9		       07		      .byte.b	#%00000111
+    371  f1fa		       07		      .byte.b	#%00000111
+    372  f1fb		       07		      .byte.b	#%00000111
+    373  f1fc		       07		      .byte.b	#%00000111
+    374  f1fd		       07		      .byte.b	#%00000111
+    375  f1fe		       07		      .byte.b	#%00000111
+    376  f1ff		       07		      .byte.b	#%00000111
+    377  f200		       07		      .byte.b	#%00000111
+    378  f201		       07		      .byte.b	#%00000111
+    379  f202		       07		      .byte.b	#%00000111
+    380  f203		       07		      .byte.b	#%00000111
+    381  f204		       07		      .byte.b	#%00000111
+    382  f205		       07		      .byte.b	#%00000111
+    383  f206		       07		      .byte.b	#%00000111
+    384  f207
+    385  f207				   Paddle0Color
+    386  f207		       00		      .byte.b	#$00
+    387  f208		       0a		      .byte.b	#$0A
+    388  f209		       0a		      .byte.b	#$0A
+    389  f20a		       0a		      .byte.b	#$0A
+    390  f20b		       0a		      .byte.b	#$0A
+    391  f20c		       0a		      .byte.b	#$0A
+    392  f20d		       0a		      .byte.b	#$0A
+    393  f20e		       0a		      .byte.b	#$0A
+    394  f20f		       0a		      .byte.b	#$0A
+    395  f210		       0a		      .byte.b	#$0A
+    396  f211		       0a		      .byte.b	#$0A
+    397  f212		       0a		      .byte.b	#$0A
+    398  f213		       0a		      .byte.b	#$0A
+    399  f214		       0a		      .byte.b	#$0A
+    400  f215		       0a		      .byte.b	#$0A
+    401  f216		       0a		      .byte.b	#$0A
+    402  f217		       0a		      .byte.b	#$0A
+    403  f218		       0a		      .byte.b	#$0A
+    404  f219
+    405  f219							;╔═════════════════════════════════════════════════════════════════════════════╗
+    406  f219							;║ Setting Reset memory							  ║
+    407  f219							;╚═════════════════════════════════════════════════════════════════════════════╝
+    408  fffc					      org	$FFFC
+    409  fffc		       00 f0		      .word.w	Reset
+    410  fffe		       00 f0		      .word.w	Reset
